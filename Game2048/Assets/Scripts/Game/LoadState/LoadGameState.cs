@@ -1,8 +1,11 @@
 using Core.FiniteStateMachine;
 using Core.Services;
+using Game.ApplicationMainMenu;
+using Game.Configs;
 using Game.Factory;
 using Game.GameState;
 using Game.Services.AssetProvider;
+using StaticData;
 using UnityEngine;
 
 namespace Game.LoadState
@@ -11,36 +14,68 @@ namespace Game.LoadState
     {
         private readonly IInputService _inputService;
         private readonly IUpdateService _updateService;
-        private IStateMachine _stateMachine;
-        private GameLoopState _gameLoopState;
-        private UIFactory _uiFactory;
-        private AssetProvider _assetProvider;
+        private readonly IStateMachine _stateMachine;
+        private readonly GameLoopState _gameLoopState;
+        private readonly UIFactory _uiFactory;
+        private readonly AssetProvider _assetProvider;
+        private readonly ISaveLoadService _saveLoadService;
+        private readonly GameData _gameData;
+        private readonly ISaveLoadServiceProvider<GameData> _gameDataSaveLoadProvider;
+        private readonly ApplicationMainMenuState _applicationMainMenuState;
+        private readonly GameFactory _gameFactory;
 
-        public LoadGameState(IInputService inputService, IUpdateService updateService)
-        {
-            _inputService = inputService;
-            _updateService = updateService;
-        }
-        
-        public void OnStateEnter(IStateMachine stateMachine)
+        public LoadGameState(IStateMachine stateMachine,IInputService inputService, IUpdateService updateService)
         {
             _stateMachine = stateMachine;
+            _inputService = inputService;
+            _updateService = updateService;
             _assetProvider = new AssetProvider();
+            _saveLoadService = new SaveLoadService();
+            _gameDataSaveLoadProvider = new GameDataSaveLoadServiceProvider(_saveLoadService,GameConstant.DefaultBoardSize);
+            _gameData = _gameDataSaveLoadProvider.Load();
             _uiFactory = new UIFactory(_assetProvider);
-            var menu = _uiFactory.GetMainMenu();
-            menu.Show(Vector3.zero);
-            // Try load previous game
-            
-            // Enter new game
-            var config = new GameStateConfig(4);
-            _gameLoopState = new GameLoopState(config,_inputService,_updateService, _assetProvider);
+            _applicationMainMenuState = new ApplicationMainMenuState(_stateMachine, _uiFactory, _gameDataSaveLoadProvider);
+            _stateMachine.AddState(_applicationMainMenuState);
+            _gameFactory = new GameFactory(_assetProvider, _uiFactory);
+            _gameLoopState = new GameLoopState(_stateMachine ,_inputService, _updateService, _gameFactory);
             _stateMachine.AddState(_gameLoopState);
-            _stateMachine.EnterState<GameLoopState>();
+        }
+        
+        public void OnStateEnter()
+        {
+            // TODO: show curtain
+            _stateMachine.EnterState<ApplicationMainMenuState,GameData>(_gameData);
         }
 
         public void OnStateExit()
         {
             Debug.Log("Exit load state.");
+        }
+    }
+    
+    public class NewGameState :  IState
+    {
+        public void OnStateExit()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnStateEnter()
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+    
+    public class ContinuePlayState : IState
+    {
+        public void OnStateExit()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnStateEnter()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

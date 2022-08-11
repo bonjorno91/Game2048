@@ -2,11 +2,11 @@ namespace Core.FiniteStateMachine
 {
     public interface IState : IStateExitable
     {
-        void OnStateEnter(IStateMachine stateMachine);
+        void OnStateEnter();
     }
     
     public interface IState<TPayload> : IStateExitable
     {
-        void OnStateEnter(IStateMachine stateMachine, TPayload payload);
+        void OnStateEnter(TPayload payloadData);
     }
 }

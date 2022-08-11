@@ -2,52 +2,69 @@ using System.Threading.Tasks;
 using Core.DataStructure;
 using Core.FiniteStateMachine;
 using Core.Services;
+using Game.ApplicationMainMenu;
 using Game.Behaviours;
+using Game.Configs;
 using Game.Controllers;
 using Game.Factory;
-using Game.Services.AssetProvider;
 using UnityEngine;
 
 namespace Game.GameState
 {
-    public class GameLoopState : IState
+    public class GameLoopState : IState<GameData>
     {
-        private readonly GameStateConfig _config;
+        private readonly IStateMachine _stateMachine;
         private readonly IInputService _inputService;
         private readonly IUpdateService _updateService;
-        private readonly GameBoardModel _gameBoardModel;
-        private readonly GameBoardController _gameBoardController;
-        private readonly IAssetProvider _assetProvider;
         private readonly GameFactory _gameFactory;
-        private readonly GameBoardView _gameBoardView;
-        private IStateMachine _stateMachine;
+        private GameBoardController _gameBoardController;
+        private GameBoardView _gameBoardView;
         private bool IsReady => _gameBoardController.IsReady;
         public bool HasInput => _inputService.Direction.x != 0 || _inputService.Direction.y != 0;
         public bool GameOver => _gameBoardController.GameOver;
+        private Task _inputTask;
+        private GameData _gameData;
 
 
-        public GameLoopState(GameStateConfig config, IInputService inputService, IUpdateService updateService,
-            IAssetProvider assetProvider)
-        {
-            _config = config;
-            _assetProvider = assetProvider;
-            _inputService = inputService;
-            _updateService = updateService;
-            _gameFactory = new GameFactory(_assetProvider);
-            _gameBoardModel = GameBoardModel.LoadBoard(config.Field);
-            _gameBoardView = _gameFactory.GetOrCreateGameBoardView(_gameBoardModel);
-            _gameBoardController = new GameBoardController(_gameBoardModel, _gameBoardView, _gameFactory);
-        }
-
-        public void OnStateEnter(IStateMachine stateMachine)
+        public GameLoopState(IStateMachine stateMachine, IInputService inputService, IUpdateService updateService,
+            GameFactory gameFactory)
         {
             _stateMachine = stateMachine;
-            _updateService.OnUpdate += OnLoop;
+            _inputService = inputService;
+            _updateService = updateService;
+            _gameFactory = gameFactory;
         }
 
-        private Task _inputTask;
+        public void OnStateEnter(GameData payloadData)
+        {
+            if (_gameData == null || !_gameData.GameBoardModel.IsEqual(payloadData.GameBoardModel))
+            {
+                _gameData = payloadData;
+                Initialize(_gameData.GameBoardModel);
+            }
 
-        private void OnLoop(float deltaTime)
+            _updateService.OnUpdate += OnGameLoop;
+            _gameBoardView.OnMenuButtonClicked += OpenMenu;
+        }
+
+        private void OpenMenu()
+        {
+            _stateMachine.EnterState<ApplicationMainMenuState,GameData>(_gameData);
+        }
+
+        public void OnStateExit()
+        {
+            _updateService.OnUpdate -= OnGameLoop;
+            _gameBoardView.OnMenuButtonClicked -= OpenMenu;
+        }
+
+        private void Initialize(GameBoardModel gameBoardModel)
+        {
+            _gameBoardView = _gameFactory.GetOrCreateGameBoardView(gameBoardModel);
+            _gameBoardController = new GameBoardController(gameBoardModel, _gameBoardView, _gameFactory);
+        }
+
+        private void OnGameLoop(float deltaTime)
         {
             if (GameOver)
             {
@@ -64,13 +81,7 @@ namespace Game.GameState
 
         private void OnGameOver()
         {
-            Debug.Log("Game over!");
-        }
-
-        public void OnStateExit()
-        {
-            // TODO: save data
-            Debug.Log("Exit game.");
+            _stateMachine.EnterState<GameOverState, GameData>(_gameData);
         }
     }
 }

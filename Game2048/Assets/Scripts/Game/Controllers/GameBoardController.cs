@@ -37,7 +37,7 @@ namespace Game.Controllers
 
         private void OnTileMoveHandler(int from, int to, byte power)
         {
-            _gameBoardView.MoveTile(from, to, power);
+            _gameBoardView.MoveTile(from, to);
         }
 
         public async Task HandleInput(Vector2Int direction)

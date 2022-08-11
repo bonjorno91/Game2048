@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,32 +9,61 @@ namespace Game.Factory.Behaviours
     [RequireComponent(typeof(RectTransform))]
     public class MainMenuView : MonoBehaviour
     {
-        private const float FaderDuration = 0.5f;
+        private const float FaderDuration = 0.3f;
         private const float ScaleDuration = 0.3f;
-        private RectTransform _rectTransform;
+        private const float MoveDuration = 0.3f;
         private BackgroundFader _backgroundFader;
+        [SerializeField] private RectTransform _windowRectTransform;
         [SerializeField] private Button resumeButton;
+        [SerializeField] private Button newGameButton;
+        [SerializeField] private Button exitGameButton;
+        public event Action OnResumeButtonClicked;
+        public event Action OnNewGameButtonClicked;
+        public event Action OnExitGameButtonClicked;
+
         public void Initialize(BackgroundFader backgroundFader)
         {
             _backgroundFader = backgroundFader;
-            _rectTransform = gameObject.GetComponent<RectTransform>();
-            if(resumeButton) resumeButton.onClick.AddListener(Hide);
+            if (resumeButton) resumeButton.onClick.AddListener(OnResume);
+            if (newGameButton) newGameButton.onClick.AddListener(OnNewGame);
+            if (exitGameButton) exitGameButton.onClick.AddListener(OnGameExit);
         }
 
-        public void Show(Vector3 fromPosition)
+        private void OnGameExit()
         {
-            _rectTransform.localScale = Vector3.zero;
+            OnExitGameButtonClicked?.Invoke();
+        }
+
+        private void OnNewGame()
+        {
+            OnNewGameButtonClicked?.Invoke();
+        }
+
+        private void OnResume()
+        {
+            OnResumeButtonClicked?.Invoke();
+            Hide();
+        }
+        
+        
+
+        public void Show(bool continuePlay)
+        {
+            resumeButton.gameObject.SetActive(continuePlay);
+            _windowRectTransform.localScale = Vector3.one;
+            _windowRectTransform.localPosition = Vector3.up * 1000;
+
             gameObject.SetActive(true);
             _backgroundFader.Show(FaderDuration);
-            // _rectTransform.DOPos
-            _rectTransform.DOScale(Vector3.one, ScaleDuration);
+
+            _windowRectTransform.DOLocalMove(Vector3.zero, MoveDuration);
         }
 
         public void Hide()
         {
             gameObject.SetActive(false);
             _backgroundFader.Hide(FaderDuration);
-            _rectTransform.DOScale(Vector3.zero, ScaleDuration);
+            _windowRectTransform.DOScale(Vector3.zero, ScaleDuration);
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Game.Factory
 {
     public class UIFactory
     {
+        public RectTransform RootTransform => _rootCanvasRectTransform;
         private readonly IAssetProvider _assetProvider;
         private RectTransform _rootCanvasRectTransform;
         private BackgroundFader _backgroundFader;
@@ -21,23 +22,9 @@ namespace Game.Factory
             InitializeResources();
         }
 
-        private void InitializeResources()
-        {
-            _rootCanvasRectTransform = Object.Instantiate(_rootCanvasRectTransform);
-            _backgroundFader = Object.Instantiate(_backgroundFader,_rootCanvasRectTransform);
-            _mainMenu = Object.Instantiate(_mainMenu,_rootCanvasRectTransform);
-
-            _backgroundFader.Initialize();
-            _mainMenu.Initialize(_backgroundFader);
-            Canvas.ForceUpdateCanvases();
-            
-            _mainMenu.gameObject.SetActive(false);
-            _backgroundFader.gameObject.SetActive(false);
-            _rootCanvasRectTransform.gameObject.SetActive(true);
-        }
-
         public MainMenuView GetMainMenu()
         {
+            _rootCanvasRectTransform.gameObject.SetActive(true);
             return _mainMenu;
         }
 
@@ -46,6 +33,21 @@ namespace Game.Factory
             _rootCanvasRectTransform = _assetProvider.LoadAsset<RectTransform>(AssetPath.MenuCanvas);
             _backgroundFader = _assetProvider.LoadAsset<BackgroundFader>(AssetPath.BackgroundFader);
             _mainMenu = _assetProvider.LoadAsset<MainMenuView>(AssetPath.MainMenu);
+        }
+
+        private void InitializeResources()
+        {
+            _rootCanvasRectTransform = Object.Instantiate(_rootCanvasRectTransform);
+            _backgroundFader = Object.Instantiate(_backgroundFader, _rootCanvasRectTransform);
+            _mainMenu = Object.Instantiate(_mainMenu, _rootCanvasRectTransform);
+
+            _backgroundFader.Initialize();
+            _mainMenu.Initialize(_backgroundFader);
+            Canvas.ForceUpdateCanvases();
+
+            _mainMenu.gameObject.SetActive(false);
+            _backgroundFader.gameObject.SetActive(false);
+            _rootCanvasRectTransform.gameObject.SetActive(true);
         }
     }
 }

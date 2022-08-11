@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Services;
+using Game.Configs;
 using JetBrains.Annotations;
 using Unity.Collections;
 using UnityEngine;
@@ -8,7 +10,7 @@ using UnityEngine;
 namespace Core.DataStructure
 {
     [Serializable]
-    public class GameBoardModel
+    public class GameBoardModel : ISerializationCallbackReceiver
     {
         private static readonly Vector2Int[] MoveDirections = new[]
         {
@@ -30,19 +32,18 @@ namespace Core.DataStructure
 
         public int SizeX => _sizeX;
 
-        public byte[] Tiles => _field;
-
-        private readonly int _sizeX;
-
-        private readonly int _sizeY;
-
-        private readonly byte[] _field;
+        public byte[] Tiles => _tiles;
+        [SerializeField] private int _sizeX;
+        [SerializeField] private int _sizeY;
+        [SerializeField] private byte[] _tiles;
 
         private GameBoardModel _buffer;
 
         private bool _isScoreDirty = true;
 
+
         // Factory method
+
         /// <summary>
         /// Create non-square game board.
         /// </summary>
@@ -57,7 +58,9 @@ namespace Core.DataStructure
             return instance;
         }
 
+
         // Factory method
+
         /// <summary>
         /// Create square game board.
         /// </summary>
@@ -70,14 +73,19 @@ namespace Core.DataStructure
 
         // Factory method
         /// <summary>
-        /// Return copy of saved board.
+        /// Load game board.
         /// </summary>
-        /// <param name="saved">Saved board.</param>
-        /// <returns>Copy of saved board.</returns>
-        public static GameBoardModel LoadBoard(GameBoardModel saved)
+        /// <param name="sizeX"></param>
+        /// <param name="sizeY"></param>
+        /// <param name="tiles"></param>
+        /// <param name="score"></param>
+        /// <returns></returns>
+        public static GameBoardModel Load(uint sizeX, uint sizeY, byte[] tiles, uint score)
         {
-            GameBoardModel instance = new GameBoardModel((uint) saved._sizeX, (uint) saved._sizeY, saved._field);
+            var instance = new GameBoardModel(sizeX, sizeY, tiles);
+            instance.Score = score;
             instance.InitBuffer();
+            
             return instance;
         }
 
@@ -85,14 +93,14 @@ namespace Core.DataStructure
         {
             _sizeX = (int) sizeX;
             _sizeY = (int) sizeY;
-            _field = new byte[sizeX * sizeY];
+            _tiles = new byte[sizeX * sizeY];
         }
 
         private GameBoardModel(uint sizeX, uint sizeY, in byte[] data) : this(sizeX, sizeY)
         {
             if (sizeX * sizeY != data.Length) throw new ArgumentOutOfRangeException();
 
-            data.CopyTo(_field, 0);
+            data.CopyTo(_tiles, 0);
         }
 
         /// <summary>
@@ -106,7 +114,7 @@ namespace Core.DataStructure
 
             if (randomIndex >= 0)
             {
-                _field[randomIndex] = power;
+                _tiles[randomIndex] = power;
             }
 
             return randomIndex;
@@ -148,7 +156,7 @@ namespace Core.DataStructure
 
         private GameBoardModel LoadBuffer(GameBoardModel source)
         {
-            source._field.CopyTo(_field, 0);
+            source._tiles.CopyTo(_tiles, 0);
             return this;
         }
 
@@ -170,11 +178,11 @@ namespace Core.DataStructure
 
         private int GetRandomFreeTileIndex()
         {
-            var list = new List<int>(_field.Length);
+            var list = new List<int>(_tiles.Length);
 
-            for (int i = 0; i < _field.Length; i++)
+            for (int i = 0; i < _tiles.Length; i++)
             {
-                if (_field[i] == 0)
+                if (_tiles[i] == 0)
                 {
                     list.Add(i);
                 }
@@ -209,11 +217,11 @@ namespace Core.DataStructure
             return this;
         }
 
-        private bool IsEqual([NotNull] GameBoardModel other)
+        public bool IsEqual([NotNull] GameBoardModel other)
         {
-            for (int i = 0; i < _field.Length; i++)
+            for (int i = 0; i < _tiles.Length; i++)
             {
-                if (_field[i] != other._field[i]) return false;
+                if (_tiles[i] != other._tiles[i]) return false;
             }
 
             return true;
@@ -246,19 +254,19 @@ namespace Core.DataStructure
                     int current = GetIndexByPosition(x, y);
 
                     // current is number
-                    if (_field[current] > 0)
+                    if (_tiles[current] > 0)
                     {
                         // looking for duplicate
                         if (previous >= 0)
                         {
                             // current is duplicate
-                            if (_field[current] == _field[previous])
+                            if (_tiles[current] == _tiles[previous])
                             {
                                 // increase current value and go looking next index
-                                _field[current] += 1;
-                                _field[previous] = 0;
-                                OnTileCollapsed?.Invoke(previous, current, _field[current]);
-                                IncreaseScore((uint) Mathf.Pow((int) _field[current], 2));
+                                _tiles[current] += 1;
+                                _tiles[previous] = 0;
+                                OnTileCollapsed?.Invoke(previous, current, _tiles[current]);
+                                IncreaseScore((uint) Mathf.Pow((int) _tiles[current], 2));
                                 previous = -1;
                                 continue;
                             }
@@ -283,19 +291,19 @@ namespace Core.DataStructure
                     int current = GetIndexByPosition(x, y);
 
                     // current is number
-                    if (_field[current] > 0)
+                    if (_tiles[current] > 0)
                     {
                         // looking for duplicate
                         if (previous >= 0)
                         {
                             // current is duplicate
-                            if (_field[current] == _field[previous])
+                            if (_tiles[current] == _tiles[previous])
                             {
                                 // increase prev value and go looking next index
-                                _field[current] += 1;
-                                _field[previous] = 0;
-                                OnTileCollapsed?.Invoke(previous, current, _field[current]);
-                                IncreaseScore((uint) Mathf.Pow((int) _field[current], 2));
+                                _tiles[current] += 1;
+                                _tiles[previous] = 0;
+                                OnTileCollapsed?.Invoke(previous, current, _tiles[current]);
+                                IncreaseScore((uint) Mathf.Pow((int) _tiles[current], 2));
                                 previous = -1;
                                 continue;
                             }
@@ -321,7 +329,7 @@ namespace Core.DataStructure
                     int current = GetIndexByPosition(x, y);
 
                     // step on free tile
-                    if (_field[current] == 0)
+                    if (_tiles[current] == 0)
                     {
                         // start searching occupied tile
                         for (; column < _sizeY; column++, searchX += directionX)
@@ -329,11 +337,11 @@ namespace Core.DataStructure
                             var searchIndex = GetIndexByPosition(searchX, y);
 
                             // tile is occupied
-                            if (_field[searchIndex] != 0)
+                            if (_tiles[searchIndex] != 0)
                             {
-                                _field[current] = _field[searchIndex];
-                                _field[searchIndex] = 0;
-                                OnTileMoved?.Invoke(searchIndex, current, _field[current]);
+                                _tiles[current] = _tiles[searchIndex];
+                                _tiles[searchIndex] = 0;
+                                OnTileMoved?.Invoke(searchIndex, current, _tiles[current]);
                                 break;
                             }
                         }
@@ -363,7 +371,7 @@ namespace Core.DataStructure
                     int current = GetIndexByPosition(x, y);
 
                     // step on free tile
-                    if (_field[current] == 0)
+                    if (_tiles[current] == 0)
                     {
                         // start searching occupied tile
                         for (; row < _sizeY; row++, searchY += directionY)
@@ -371,11 +379,11 @@ namespace Core.DataStructure
                             var searchIndex = GetIndexByPosition(x, searchY);
 
                             // tile is occupied
-                            if (_field[searchIndex] != 0)
+                            if (_tiles[searchIndex] != 0)
                             {
-                                _field[current] = _field[searchIndex];
-                                _field[searchIndex] = 0;
-                                OnTileMoved?.Invoke(searchIndex, current, _field[current]);
+                                _tiles[current] = _tiles[searchIndex];
+                                _tiles[searchIndex] = 0;
+                                OnTileMoved?.Invoke(searchIndex, current, _tiles[current]);
                                 break;
                             }
                         }
@@ -427,7 +435,17 @@ namespace Core.DataStructure
 
         private bool IsInBoundaries(int index)
         {
-            return index >= 0 && index < _field.Length && IsInBoundaries(GetPositionByIndex(index));
+            return index >= 0 && index < _tiles.Length && IsInBoundaries(GetPositionByIndex(index));
+        }
+
+        public void OnBeforeSerialize()
+        {
+            
+        }
+
+        public void OnAfterDeserialize()
+        {
+            InitBuffer();
         }
     }
 }

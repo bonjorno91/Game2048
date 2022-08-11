@@ -14,15 +14,17 @@ namespace Game.Factory
     public class GameFactory
     {
         private readonly IAssetProvider _assetProvider;
+        private readonly UIFactory _uiFactory;
         private RectTransform _rootGameBoardCanvasTransform;
         private RectTransform _backgroundTileRectTransform;
         private GameBoardView _gameBoardView;
         private GameBoardTileView _gameBoardTileView;
         private TilePool _tilePool;
         
-        public GameFactory(IAssetProvider assetProvider)
+        public GameFactory(IAssetProvider assetProvider, UIFactory uiFactory)
         {
             _assetProvider = assetProvider;
+            _uiFactory = uiFactory;
             LoadResources();
             InitializeResources();
         }

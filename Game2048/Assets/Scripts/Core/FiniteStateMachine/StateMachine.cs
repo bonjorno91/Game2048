@@ -25,12 +25,12 @@ namespace Core.FiniteStateMachine
         
         public void EnterState<TState>() where TState : IState
         {
-            SetState<TState>().OnStateEnter(this);
+            SetState<TState>().OnStateEnter();
         }
 
         public void EnterState<TState, TPayload>(TPayload payload) where TState : IState<TPayload>
         {
-            SetState<TState>().OnStateEnter(this,payload);
+            SetState<TState>().OnStateEnter(payload);
         }
 
         private TState SetState<TState>() where TState : IStateExitable

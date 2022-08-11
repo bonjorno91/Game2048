@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using Game.Factory.Behaviours;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -13,13 +14,13 @@ namespace Game.Behaviours
         {
             set => _scoreLabel.text = value;
         }
-
         public RectTransform BoardRoot => _boardRoot;
-
+        public event Action OnMenuButtonClicked; 
         public RectTransform[] BackgroundTiles => _backgroundTiles;
 
         [SerializeField] private RectTransform _boardRoot;
         [SerializeField] private TextMeshProUGUI _scoreLabel;
+        [SerializeField] private Button _menuButton;
         private RectTransform[] _backgroundTiles;
         private GameBoardTileView[] _gameBoardTileViews;
 
@@ -27,8 +28,14 @@ namespace Game.Behaviours
         {
             _gameBoardTileViews = gameBoardTileViews;
             _backgroundTiles = backgroundTiles;
-
+            _menuButton.onClick.AddListener(OnMenuButtonClick);
+            _menuButton.gameObject.GetComponent<RectTransform>();
             return this;
+        }
+
+        private void OnMenuButtonClick()
+        {
+            OnMenuButtonClicked?.Invoke();
         }
 
         public void AddNewTile(GameBoardTileView tileView, int index)
@@ -42,7 +49,7 @@ namespace Game.Behaviours
             return _backgroundTiles[index].position;
         }
 
-        public void MoveTile(int from, int to, byte power)
+        public void MoveTile(int from, int to)
         {
             _gameBoardTileViews[from].MoveTo(BackgroundTiles[to].transform);
             _gameBoardTileViews[to] = _gameBoardTileViews[from];

@@ -14,13 +14,15 @@ namespace Core.Bootstrappers
         private IStateMachine _stateMachine;
         private UpdateService _updateService;
         private InputService _inputService;
-        
+        private LoadGameState _loadGameState;
+
         protected override void OnLoad()
         {
+            _stateMachine = new StateMachine();
             _updateService = new UpdateService(this);
             _inputService = new InputService(_updateService);
-            _stateMachine = new StateMachine();
-            _stateMachine.AddState(new LoadGameState(_inputService,_updateService));
+            _loadGameState = new LoadGameState(_stateMachine, _inputService,_updateService);
+            _stateMachine.AddState(_loadGameState);
             _stateMachine.EnterState<LoadGameState>();
         }
 

@@ -25,7 +25,7 @@ namespace Game.Factory.Behaviours
         {
             SetTransparent();
             gameObject.SetActive(true);
-            _image.DOFade(1, duration);
+            _image.DOFade(_originalColor.a, duration);
         }
 
         public void Hide(float duration)
@@ -35,7 +35,7 @@ namespace Game.Factory.Behaviours
 
         private void Disable()
         {
-            gameObject.SetActive(true);
+            gameObject.SetActive(false);
         }
         
         private void SetTransparent()
