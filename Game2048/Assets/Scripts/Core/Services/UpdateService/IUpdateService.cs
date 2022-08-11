@@ -1,6 +1,6 @@
 using System;
 
-namespace Core.Services
+namespace Core.Services.UpdateService
 {
     public interface IUpdateService
     {

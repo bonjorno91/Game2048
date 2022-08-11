@@ -1,4 +1,4 @@
-namespace StaticData
+namespace Game.StaticData
 {
     public static class GameConstant
     {

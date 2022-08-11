@@ -1,16 +1,15 @@
 using Core.DataStructure;
 using Core.FiniteStateMachine;
+using Core.Services.SaveLoad;
 using Game.Configs;
+using Game.Factories;
 using Game.Factory;
 using Game.Factory.Behaviours;
-using Game.GameState;
-using StaticData;
-using UnityEngine;
-#if UNITY_EDITOR
+using Game.StaticData;
 using UnityEditor;
-#endif
+using UnityEngine;
 
-namespace Game.ApplicationMainMenu
+namespace Game.States
 {
     public class ApplicationMainMenuState : IState<GameData>
     {

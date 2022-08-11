@@ -1,7 +1,9 @@
 using Core.DataStructure;
+using Core.Services.SaveLoad;
+using Game.Configs;
 using UnityEngine;
 
-namespace Game.Configs
+namespace Game.Services
 {
     public class GameDataSaveLoadServiceProvider : ISaveLoadServiceProvider<GameData>
     {

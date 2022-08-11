@@ -1,14 +1,14 @@
 using System;
-using Core.Bootstrappers;
+using Core.Bootstrap;
 
-namespace Core.Services
+namespace Core.Services.UpdateService
 {
     public class UpdateService : IUpdateService
     {
         public event Action<float> OnUpdate;
-        private readonly Bootstrapper _handler;
+        private readonly BootstrapperBase _handler;
 
-        public UpdateService(Bootstrapper handler)
+        public UpdateService(BootstrapperBase handler)
         {
             _handler = handler;
             _handler.OnUpdate += delegate(float deltaTime) { OnUpdate?.Invoke(deltaTime); };

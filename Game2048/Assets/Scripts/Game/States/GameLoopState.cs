@@ -1,15 +1,17 @@
 using System.Threading.Tasks;
 using Core.DataStructure;
 using Core.FiniteStateMachine;
-using Core.Services;
-using Game.ApplicationMainMenu;
+using Core.Services.InputService;
+using Core.Services.SaveLoad;
+using Core.Services.UpdateService;
 using Game.Behaviours;
 using Game.Configs;
 using Game.Controllers;
+using Game.Factories;
 using Game.Factory;
 using UnityEngine;
 
-namespace Game.GameState
+namespace Game.States
 {
     public class GameLoopState : IState<GameData>
     {

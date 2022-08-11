@@ -1,6 +1,7 @@
+using Core.Services.UpdateService;
 using UnityEngine;
 
-namespace Core.Services
+namespace Core.Services.InputService
 {
     internal class InputService : IInputService
     {

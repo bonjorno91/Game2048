@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-namespace Core.Bootstrappers
+namespace Core.Bootstrap
 {
     public abstract class BootstrapperBase : MonoBehaviour
     {
@@ -20,5 +21,6 @@ namespace Core.Bootstrappers
         }
 
         protected abstract void OnLoad();
+        public virtual event Action<float> OnUpdate;
     }
 }

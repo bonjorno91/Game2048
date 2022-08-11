@@ -1,4 +1,4 @@
-namespace Game.Configs
+namespace Core.Services.SaveLoad
 {
     public interface ISaveLoadServiceProvider<TData> where TData : ISaveLoad
     {

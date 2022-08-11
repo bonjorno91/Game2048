@@ -1,14 +1,16 @@
 using Core.FiniteStateMachine;
-using Core.Services;
-using Game.ApplicationMainMenu;
+using Core.Services.AssetProvider;
+using Core.Services.InputService;
+using Core.Services.SaveLoad;
+using Core.Services.UpdateService;
 using Game.Configs;
+using Game.Factories;
 using Game.Factory;
-using Game.GameState;
-using Game.Services.AssetProvider;
-using StaticData;
+using Game.Services;
+using Game.StaticData;
 using UnityEngine;
 
-namespace Game.LoadState
+namespace Game.States
 {
     public class LoadGameState : IState
     {

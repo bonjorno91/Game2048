@@ -1,15 +1,14 @@
 using System;
 using Core.DataStructure;
 using Core.ObjectPool;
+using Core.Services.AssetProvider;
 using Game.Behaviours;
-using Game.Services.AssetProvider;
-using StaticData;
+using Game.StaticData;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace Game.Factory
+namespace Game.Factories
 {
     public class GameFactory
     {

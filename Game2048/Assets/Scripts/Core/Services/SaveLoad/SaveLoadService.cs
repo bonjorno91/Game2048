@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.Configs
+namespace Core.Services.SaveLoad
 {
     public class SaveLoadService : ISaveLoadService
     {

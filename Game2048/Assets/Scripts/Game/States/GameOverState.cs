@@ -1,10 +1,10 @@
 using Core.DataStructure;
 using Core.FiniteStateMachine;
-using Game.ApplicationMainMenu;
+using Core.Services.SaveLoad;
 using Game.Configs;
-using StaticData;
+using Game.StaticData;
 
-namespace Game.GameState
+namespace Game.States
 {
     internal class GameOverState : IState<GameData>
     {

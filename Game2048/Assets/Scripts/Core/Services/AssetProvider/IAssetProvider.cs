@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.Services.AssetProvider
+namespace Core.Services.AssetProvider
 {
     public interface IAssetProvider
     {

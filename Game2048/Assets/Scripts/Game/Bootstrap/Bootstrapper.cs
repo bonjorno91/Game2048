@@ -1,15 +1,16 @@
 using System;
+using Core.Bootstrap;
 using Core.FiniteStateMachine;
-using Core.Services;
-using Game;
-using Game.LoadState;
+using Core.Services.InputService;
+using Core.Services.UpdateService;
+using Game.States;
 using UnityEngine;
 
-namespace Core.Bootstrappers
+namespace Game.Bootstrap
 {
     public sealed class Bootstrapper : BootstrapperBase
     {
-        public event Action<float> OnUpdate;
+        public override event Action<float> OnUpdate;
         
         private IStateMachine _stateMachine;
         private UpdateService _updateService;

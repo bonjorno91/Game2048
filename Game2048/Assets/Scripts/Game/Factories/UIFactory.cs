@@ -1,11 +1,9 @@
+using Core.Services.AssetProvider;
 using Game.Factory.Behaviours;
-using Game.LoadState;
-using Game.Services.AssetProvider;
-using StaticData;
+using Game.StaticData;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
-namespace Game.Factory
+namespace Game.Factories
 {
     public class UIFactory
     {
