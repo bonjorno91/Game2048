@@ -18,7 +18,7 @@ namespace Game.Configs
         public void Save(GameData gameData)
         {
             _saveLoadService.Save(Key, gameData);
-            gameData.OnSave(_saveLoadService);
+            // gameData.OnSave(_saveLoadService);
             PlayerPrefs.Save();
         }
 

@@ -37,7 +37,7 @@ namespace Game.LoadState
             _applicationMainMenuState = new ApplicationMainMenuState(_stateMachine, _uiFactory, _gameDataSaveLoadProvider);
             _stateMachine.AddState(_applicationMainMenuState);
             _gameFactory = new GameFactory(_assetProvider, _uiFactory);
-            _gameLoopState = new GameLoopState(_stateMachine ,_inputService, _updateService, _gameFactory);
+            _gameLoopState = new GameLoopState(_stateMachine ,_inputService, _updateService, _gameFactory, _gameDataSaveLoadProvider);
             _stateMachine.AddState(_gameLoopState);
         }
         

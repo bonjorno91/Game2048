@@ -17,6 +17,7 @@ namespace Game.GameState
         private readonly IInputService _inputService;
         private readonly IUpdateService _updateService;
         private readonly GameFactory _gameFactory;
+        private readonly ISaveLoadServiceProvider<GameData> _saveLoadServiceProvider;
         private GameBoardController _gameBoardController;
         private GameBoardView _gameBoardView;
         private bool IsReady => _gameBoardController.IsReady;
@@ -27,12 +28,13 @@ namespace Game.GameState
 
 
         public GameLoopState(IStateMachine stateMachine, IInputService inputService, IUpdateService updateService,
-            GameFactory gameFactory)
+            GameFactory gameFactory,ISaveLoadServiceProvider<GameData> saveLoadServiceProvider)
         {
             _stateMachine = stateMachine;
             _inputService = inputService;
             _updateService = updateService;
             _gameFactory = gameFactory;
+            _saveLoadServiceProvider = saveLoadServiceProvider;
         }
 
         public void OnStateEnter(GameData payloadData)
@@ -45,6 +47,12 @@ namespace Game.GameState
 
             _updateService.OnUpdate += OnGameLoop;
             _gameBoardView.OnMenuButtonClicked += OpenMenu;
+            Application.quitting += OnQuit;
+        }
+
+        private void OnQuit()
+        {
+            _saveLoadServiceProvider.Save(_gameData);
         }
 
         private void OpenMenu()
@@ -56,6 +64,7 @@ namespace Game.GameState
         {
             _updateService.OnUpdate -= OnGameLoop;
             _gameBoardView.OnMenuButtonClicked -= OpenMenu;
+            Application.quitting -= OnQuit;
         }
 
         private void Initialize(GameBoardModel gameBoardModel)

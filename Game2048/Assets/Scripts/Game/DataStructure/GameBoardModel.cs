@@ -26,7 +26,11 @@ namespace Core.DataStructure
 
         public event Action<int, int, byte> OnTileCollapsed;
 
-        public uint Score { get; private set; }
+        public uint Score
+        {
+            get => _score;
+            set => _score = value;
+        }
 
         public int SizeY => _sizeY;
 
@@ -36,7 +40,7 @@ namespace Core.DataStructure
         [SerializeField] private int _sizeX;
         [SerializeField] private int _sizeY;
         [SerializeField] private byte[] _tiles;
-
+        [SerializeField] private uint _score;
         private GameBoardModel _buffer;
 
         private bool _isScoreDirty = true;
