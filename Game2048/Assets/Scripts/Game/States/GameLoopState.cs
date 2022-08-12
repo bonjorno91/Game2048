@@ -89,8 +89,6 @@ namespace Game.States
 
                 UpdateBestScore();
             }
-
-            if (Input.GetKeyDown(KeyCode.Space)) OnGameOver();
         }
 
         private void UpdateBestScore()
