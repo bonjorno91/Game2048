@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
-using UnityEditor.VersionControl;
+using Game.Behaviours;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,11 +13,12 @@ namespace Game.Factory.Behaviours
         private const float FaderDuration = 0.3f;
         private const float ScaleDuration = 0.3f;
         private const float MoveDuration = 0.3f;
-        private BackgroundFader _backgroundFader;
         [SerializeField] private RectTransform _windowRectTransform;
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button newGameButton;
         [SerializeField] private Button exitGameButton;
+        [SerializeField] private TextMeshProUGUI bestScore;
+        private BackgroundFader _backgroundFader;
         public event Action OnResumeButtonClicked;
         public event Action OnNewGameButtonClicked;
         public event Action OnExitGameButtonClicked;
@@ -28,6 +30,12 @@ namespace Game.Factory.Behaviours
             if (newGameButton) newGameButton.onClick.AddListener(OnNewGame);
             if (exitGameButton) exitGameButton.onClick.AddListener(OnGameExit);
         }
+
+        public void SetBestScore(string score)
+        {
+            if (bestScore) bestScore.text = score;
+        }
+
 
         private void OnGameExit()
         {
@@ -44,8 +52,7 @@ namespace Game.Factory.Behaviours
             OnResumeButtonClicked?.Invoke();
             Hide();
         }
-        
-        
+
 
         public void Show(bool continuePlay)
         {

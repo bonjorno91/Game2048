@@ -13,92 +13,102 @@ namespace Game.Factories
     public class GameFactory
     {
         private readonly IAssetProvider _assetProvider;
-        private readonly UIFactory _uiFactory;
-        private RectTransform _rootGameBoardCanvasTransform;
+        private IMonoPool<BackgroundTile> _backgroundsPool;
         private RectTransform _backgroundTileRectTransform;
-        private GameBoardView _gameBoardView;
+        private BackgroundTile[] _backgroundTiles;
+        private BackgroundTile _backgroundTileView;
+        private GameBoardView _boardView;
         private GameBoardTileView _gameBoardTileView;
-        private TilePool _tilePool;
-        
-        public GameFactory(IAssetProvider assetProvider, UIFactory uiFactory)
+        private RectTransform _rootRectTransform;
+        private IMonoPool<GameBoardTileView, byte> _tilesPool;
+
+        public GameFactory(IAssetProvider assetProvider)
         {
             _assetProvider = assetProvider;
-            _uiFactory = uiFactory;
             LoadResources();
             InitializeResources();
         }
 
-        public GameBoardTileView GetOrCreateGameTileView(Vector3 position,byte power)
+        public GameBoardTileView GetOrCreateGameTileView(Vector3 position, byte power)
         {
-            return _tilePool.Get(position, quaternion.identity, power);
+            return _tilesPool.GetFromPool(position, quaternion.identity, power);
         }
-        
-        public GameBoardView GetOrCreateGameBoardView(GameBoardModel model)
+
+        private void LoadResources()
+        {
+            _rootRectTransform = _assetProvider.LoadAsset<RectTransform>(AssetPath.RootCanvas);
+            _boardView = _assetProvider.LoadAsset<GameBoardView>(AssetPath.BoardPrefab);
+            _backgroundTileRectTransform = _assetProvider.LoadAsset<RectTransform>(AssetPath.BoardTileBackground);
+            _gameBoardTileView = _assetProvider.LoadAsset<GameBoardTileView>(AssetPath.TilePrefab);
+            _backgroundTileView = _assetProvider.LoadAsset<BackgroundTile>(AssetPath.BoardTileBackground);
+        }
+
+        public GameBoardView GetGameBoardViewFor(GameBoardModel model)
         {
             #region EarlyExit
 
             if (model == null)
                 throw new NullReferenceException();
 
-            if (!_rootGameBoardCanvasTransform)
+            if (!_rootRectTransform)
                 throw new NullReferenceException();
 
             if (!_backgroundTileRectTransform)
                 throw new NullReferenceException();
 
-            if (_gameBoardView.gameObject.GetInstanceID() < 0)
-                return _gameBoardView;
-
             #endregion
 
-            _gameBoardView = Object.Instantiate(_gameBoardView, _rootGameBoardCanvasTransform);
+            _rootRectTransform.gameObject.SetActive(true);
 
-            _rootGameBoardCanvasTransform.gameObject.SetActive(true);
-            _gameBoardView.gameObject.SetActive(true);
+            InitializeBackgroundTiles(model);
+            InitializeGameBoardTileViews(model);
 
-            var backgroundTiles = new RectTransform[model.Tiles.Length];
-
-            for (int y = model.SizeY-1; y >= 0; y--)
-            {
-                for (int x = 0; x < model.SizeX; x++)
-                {
-                    var i = y * model.SizeX + x;
-                    backgroundTiles[i] =
-                        Object.Instantiate(_backgroundTileRectTransform, _gameBoardView.BoardRoot);
-                    backgroundTiles[i].name = $"background ({i}) [{x},{y}]";
-                }
-            }
-
-            Canvas.ForceUpdateCanvases();
-            
-            _tilePool = new TilePool(_gameBoardTileView, 16, _rootGameBoardCanvasTransform);
-            GameBoardTileView[] gameBoardTileViews = new GameBoardTileView[model.Tiles.Length];
-
-            for (uint i = 0; i < model.Tiles.Length; i++)
-            {
-                if (model.Tiles[i] > 0)
-                {
-                    gameBoardTileViews[i] = GetOrCreateGameTileView(backgroundTiles[i].position, model.Tiles[i]);
-                }
-            }
-            
-            Canvas.ForceUpdateCanvases();
-
-            return _gameBoardView.Initialize(backgroundTiles, gameBoardTileViews);
+            return _boardView;
         }
 
-        private void LoadResources()
+        private void InitializeBackgroundTiles(GameBoardModel model)
         {
-            _rootGameBoardCanvasTransform = _assetProvider.LoadAsset<RectTransform>(AssetPath.RootCanvas);
-            _gameBoardView = _assetProvider.LoadAsset<GameBoardView>(AssetPath.BoardPrefab);
-            _backgroundTileRectTransform = _assetProvider.LoadAsset<RectTransform>(AssetPath.BoardTileBackground);
-            _gameBoardTileView = _assetProvider.LoadAsset<GameBoardTileView>(AssetPath.TilePrefab);
+            _backgroundTiles = new BackgroundTile[model.Tiles.Length];
+            _backgroundsPool.ReturnAll();
+
+            for (var y = 0; y < model.SizeY; y++)
+            for (var x = model.SizeX - 1; x >= 0; x--)
+            {
+                var i = y * model.SizeX + x;
+                var backgroundTile = _backgroundsPool.GetFromPool(Vector3.zero, quaternion.identity);
+
+                if (backgroundTile.Index == -1) backgroundTile.Index = i;
+
+                _backgroundTiles[backgroundTile.Index] = backgroundTile;
+                _backgroundTiles[backgroundTile.Index].name = $"background ({i}) [{x},{y}]";
+            }
+
+            _boardView.Initialize(_backgroundTiles);
+            Canvas.ForceUpdateCanvases();
+        }
+
+        private void InitializeGameBoardTileViews(GameBoardModel model)
+        {
+            var gameBoardTileViews = new GameBoardTileView[model.Tiles.Length];
+            _tilesPool.ReturnAll();
+
+            for (uint i = 0; i < model.Tiles.Length; i++)
+                if (model.Tiles[i] > 0)
+                    gameBoardTileViews[i] =
+                        GetOrCreateGameTileView(_backgroundTiles[i].RectTransform.position, model.Tiles[i]);
+
+            _boardView.SetGameBoardTileViews(gameBoardTileViews);
         }
 
         private void InitializeResources()
         {
-            _rootGameBoardCanvasTransform = Object.Instantiate(_rootGameBoardCanvasTransform);
-            _rootGameBoardCanvasTransform.gameObject.SetActive(false);
+            _rootRectTransform = Object.Instantiate(_rootRectTransform);
+            _boardView = Object.Instantiate(_boardView, _rootRectTransform);
+            _backgroundsPool = new MonoPool<BackgroundTile>(_backgroundTileView,
+                GameConstant.DefaultGameBoardTileViewsPoolSize, _boardView.BoardRoot);
+            _tilesPool = new MonoPoolPayload<GameBoardTileView, byte>(_gameBoardTileView,
+                GameConstant.DefaultGameBoardTileViewsPoolSize, _rootRectTransform);
+            _rootRectTransform.gameObject.SetActive(false);
         }
     }
 }

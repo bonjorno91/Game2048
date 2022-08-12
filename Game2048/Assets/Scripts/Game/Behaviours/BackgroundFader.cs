@@ -2,14 +2,14 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Game.Factory.Behaviours
+namespace Game.Behaviours
 {
     [RequireComponent(typeof(RectTransform))]
     public class BackgroundFader : MonoBehaviour
     {
-        private RectTransform _rectTransform;
         private Image _image;
         private Color _originalColor;
+        private RectTransform _rectTransform;
         private Color _transparentColor;
 
         public void Initialize()
@@ -37,7 +37,7 @@ namespace Game.Factory.Behaviours
         {
             gameObject.SetActive(false);
         }
-        
+
         private void SetTransparent()
         {
             _image.color = _transparentColor;

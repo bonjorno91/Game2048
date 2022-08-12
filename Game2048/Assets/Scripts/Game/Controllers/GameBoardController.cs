@@ -2,14 +2,12 @@ using System.Threading.Tasks;
 using Core.DataStructure;
 using Game.Behaviours;
 using Game.Factories;
-using Game.Factory;
 using UnityEngine;
 
 namespace Game.Controllers
 {
     public class GameBoardController
     {
-        public bool GameOver { get; private set; } = false;
         private readonly GameBoardModel _gameBoardModel;
         private readonly GameBoardView _gameBoardView;
         private readonly GameFactory _gameFactory;
@@ -24,7 +22,9 @@ namespace Game.Controllers
             _gameBoardModel.OnScoreUpdated += OnScoreUpdateHandler;
         }
 
-        public bool IsReady { get; private set; } = true;
+        public bool GameOver { get; private set; }
+
+        public bool IsReady { get; } = true;
 
         private void OnScoreUpdateHandler(uint score)
         {
@@ -47,9 +47,10 @@ namespace Game.Controllers
             if (_gameBoardModel.HandleMove(direction))
             {
                 // if moved create new tile
-                await Task.Delay(45);
+                await Task.Delay(50);
                 AddRandomTile();
                 GameOver = !_gameBoardModel.CanMove();
+                await Task.Delay(50);
             }
 
             await Task.CompletedTask;
@@ -69,7 +70,7 @@ namespace Game.Controllers
 
         private static bool RandomRoll()
         {
-            return UnityEngine.Random.Range(0, 10) == 5;
+            return Random.Range(0, 10) == 5;
         }
     }
 }

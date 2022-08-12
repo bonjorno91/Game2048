@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using Core.ObjectPool;
 using DG.Tweening;
 using TMPro;
@@ -9,9 +7,12 @@ using UnityEngine.UI;
 namespace Game.Behaviours
 {
     [RequireComponent(typeof(RectTransform))]
-    public class GameBoardTileView : MonoBehaviour, IPoolingTile
+    public class GameBoardTileView : MonoBehaviourPoolablePayload<GameBoardTileView, byte>
     {
-        private const int minDistance = 1;
+        [SerializeField] private TextMeshProUGUI _textMeshPro;
+        [SerializeField] private Image _image;
+        private IMonoPoolInitializable<GameBoardTileView> _pool;
+        private uint _power;
 
         public uint Power
         {
@@ -21,21 +22,15 @@ namespace Game.Behaviours
                 _power = value;
                 _textMeshPro.text = ((uint) Mathf.Pow(2, _power)).ToString();
                 _textMeshPro.color = _power < 3 ? Color.grey : Color.white;
-                _image.color = Color.HSVToRGB(0.06f + (0.002f * (_power / 8f)), _power / 8f, 0.9f);
+                _image.color = Color.HSVToRGB(0.06f + 0.002f * (_power / 8f), _power / 8f, 0.9f);
             }
         }
 
-        public RectTransform RectTransform => _rectTransform;
-
-        private uint _power;
-        private RectTransform _rectTransform;
-        [SerializeField] private TextMeshProUGUI _textMeshPro;
-        [SerializeField] private Image _image;
-        private TilePool _pool;
+        public RectTransform RectTransform { get; private set; }
 
         private void Awake()
         {
-            _rectTransform = GetComponent<RectTransform>();
+            RectTransform = GetComponent<RectTransform>();
         }
 
         public void PlayInitAnimation()
@@ -44,40 +39,48 @@ namespace Game.Behaviours
             color.a = 0;
             _image.color = color;
             _image.DOFade(1, 0.05f);
-            _rectTransform.DOScale(1, 0.05f);
+            RectTransform.DOScale(1, 0.05f);
         }
 
         public void PlayPowerUpdateAnimation()
         {
-            _rectTransform.DOShakeScale(0.15f,0.5f);
+            RectTransform.DOShakeScale(0.15f, 0.5f);
         }
-        
+
         public void MoveTo(Transform position)
         {
             gameObject.transform.DOMove(position.position, 0.05f);
         }
-        
-        public void InitPool(TilePool pool)
+
+        public void DestroyAndReturnPool()
+        {
+            _pool.ReturnToPool(this);
+        }
+
+        public override void OnPoolableInitialize(IMonoPoolInitializable<GameBoardTileView> pool)
         {
             _pool = pool;
             useGUILayout = false;
         }
 
-        public void OnGetFromPool(Vector3 position, Quaternion quaternion, byte payload)
+        public override void OnReturnToPool()
         {
-            gameObject.transform.position = position;
-            Power = payload;
-            gameObject.SetActive(true);
-        }
-
-        public void OnRelease()
-        {
+            Power = 1;
             gameObject.SetActive(false);
         }
 
-        public void DestroyAndReturnPool()
+        public override GameBoardTileView OnGetFromPool(Vector3 worldPosition, Quaternion rotation, byte data)
         {
-            _pool.Release(this);
+            gameObject.transform.position = worldPosition;
+            Power = data;
+            gameObject.SetActive(true);
+
+            return this;
+        }
+
+        public void PlayGameOver()
+        {
+            gameObject.transform.DOLocalJump(Vector3.right * Random.Range(-500, 500) + Vector3.down * 800, 800, 1, 3f);
         }
     }
 }

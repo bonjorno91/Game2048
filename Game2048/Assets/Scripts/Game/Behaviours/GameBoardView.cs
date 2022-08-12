@@ -1,8 +1,5 @@
 using System;
-using DG.Tweening;
-using Game.Factory.Behaviours;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,27 +7,60 @@ namespace Game.Behaviours
 {
     public class GameBoardView : MonoBehaviour
     {
+        [SerializeField] private RectTransform _boardRoot;
+
+        [SerializeField] private TextMeshProUGUI _scoreLabel;
+
+        [SerializeField] private Button _menuButton;
+
+        private BackgroundTile[] _backgroundTiles;
+
+        private GameBoardTileView[] _gameBoardTileViews;
+
         public string ScoreText
         {
             set => _scoreLabel.text = value;
         }
+
         public RectTransform BoardRoot => _boardRoot;
-        public event Action OnMenuButtonClicked; 
-        public RectTransform[] BackgroundTiles => _backgroundTiles;
 
-        [SerializeField] private RectTransform _boardRoot;
-        [SerializeField] private TextMeshProUGUI _scoreLabel;
-        [SerializeField] private Button _menuButton;
-        private RectTransform[] _backgroundTiles;
-        private GameBoardTileView[] _gameBoardTileViews;
+        #region MonoCallbacks
 
-        public GameBoardView Initialize(RectTransform[] backgroundTiles, GameBoardTileView[] gameBoardTileViews)
+        private void OnDestroy()
         {
-            _gameBoardTileViews = gameBoardTileViews;
+            if (_backgroundTiles != null)
+            {
+                foreach (var backgroundTile in _backgroundTiles)
+                    if (backgroundTile != null)
+                        Destroy(backgroundTile.gameObject);
+
+                _backgroundTiles = null;
+            }
+
+            if (_gameBoardTileViews != null)
+            {
+                foreach (var gameBoardTileView in _gameBoardTileViews)
+                    if (gameBoardTileView != null)
+                        Destroy(gameBoardTileView.gameObject);
+
+                _gameBoardTileViews = null;
+            }
+        }
+
+        #endregion
+
+        public event Action OnMenuButtonClicked;
+
+        public void Initialize(BackgroundTile[] backgroundTiles)
+        {
             _backgroundTiles = backgroundTiles;
             _menuButton.onClick.AddListener(OnMenuButtonClick);
             _menuButton.gameObject.GetComponent<RectTransform>();
-            return this;
+        }
+
+        public void SetGameBoardTileViews(GameBoardTileView[] gameBoardTileViews)
+        {
+            _gameBoardTileViews = gameBoardTileViews;
         }
 
         private void OnMenuButtonClick()
@@ -46,12 +76,12 @@ namespace Game.Behaviours
 
         public Vector3 GetBackgroundPosition(int index)
         {
-            return _backgroundTiles[index].position;
+            return _backgroundTiles[index].RectTransform.position;
         }
 
         public void MoveTile(int from, int to)
         {
-            _gameBoardTileViews[from].MoveTo(BackgroundTiles[to].transform);
+            _gameBoardTileViews[from].MoveTo(_backgroundTiles[to].transform);
             _gameBoardTileViews[to] = _gameBoardTileViews[from];
             _gameBoardTileViews[from] = null;
         }
@@ -63,27 +93,11 @@ namespace Game.Behaviours
             _gameBoardTileViews[remove].DestroyAndReturnPool();
         }
 
-        private void OnDestroy()
+        public void PlayGameOver()
         {
-            if (BackgroundTiles != null)
-            {
-                foreach (var backgroundTile in BackgroundTiles)
-                {
-                    if (backgroundTile != null) Destroy(backgroundTile.gameObject);
-                }
-
-                _backgroundTiles = null;
-            }
-
-            if (_gameBoardTileViews != null)
-            {
-                foreach (var gameBoardTileView in _gameBoardTileViews)
-                {
-                    if (gameBoardTileView != null) Destroy(gameBoardTileView.gameObject);
-                }
-
-                _gameBoardTileViews = null;
-            }
+            foreach (var tileView in _gameBoardTileViews)
+                if (tileView != null)
+                    tileView.PlayGameOver();
         }
     }
 }

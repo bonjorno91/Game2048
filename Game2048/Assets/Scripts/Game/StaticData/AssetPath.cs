@@ -9,5 +9,7 @@ namespace Game.StaticData
         public const string BoardTileBackground = "UI/Prefabs/BoardTileBG";
         public const string MenuCanvas = "UI/Prefabs/Main Menu/MenuCanvas";
         public const string MainMenu = "UI/Prefabs/Main Menu/MainMenu";
+        public const string LoadScreen = "UI/Prefabs/LoadScreen/LoadScreen";
+        public const string GameOverWindow = "UI/Prefabs/GameOver/GameOverWindow";
     }
 }
